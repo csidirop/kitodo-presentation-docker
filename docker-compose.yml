@@ -18,6 +18,7 @@ services:
     container_name: kitodo-presentation-main
     ports:
       - "0.0.0.0:$PORT:80"
+      - "0.0.0.0:443:443"
     environment:
       - DB_ADDR=db
       - DB_PORT=3306

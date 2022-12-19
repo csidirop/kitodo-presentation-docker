@@ -10,6 +10,8 @@ ENV DB_PORT=3306
 
 EXPOSE 80
 
+ADD data/ /data
+
 # This Dockerfile aimes to install a working TYPO3 v9 instance with the kitodo/presentation extension
 # based on this guide: https://github.com/UB-Mannheim/kitodo-presentation/wiki
 
@@ -22,6 +24,7 @@ RUN apt-get update \
     wget \
     jq \
     gettext \
+    ssh \
   # install tesseract:
   && echo "deb https://notesalexp.org/tesseract-ocr5/$(lsb_release -cs)/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/notesalexp.list > /dev/null \
   && apt-get update -oAcquire::AllowInsecureRepositories=true \
@@ -30,6 +33,19 @@ RUN apt-get update \
   && apt-get install -y tesseract-ocr \
   # Get language data from UB Mannheim:
   && wget https://ub-backup.bib.uni-mannheim.de/~stweil/tesstrain/frak2021/tessdata_fast/frak2021_1.069.traineddata -O /usr/share/tesseract-ocr/5/tessdata/frak2021_1.069.traineddata
+
+#ssl:
+
+RUN mkdir -p /etc/ssl/private \
+  && cd /etc/ssl/private \
+  && cp /data/localhost.* .
+#  && openssl req -x509 -out localhost.crt -keyout localhost.key -newkey rsa:2048 -nodes -sha256 -subj '/CN=localhost' -extensions EXT -config '<( printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")'
+
+RUN cd /etc/apache2/sites-available/ \
+  && mv default-ssl.conf default-ssl.conf.bak \
+  && cp /data/default-ssl.conf /etc/apache2/sites-available/default-ssl.conf \
+  && a2enmod ssl \
+  && a2ensite default-ssl.conf
 
 # Cleanup:
 RUN apt-get purge -y \
@@ -41,7 +57,7 @@ RUN apt-get purge -y \
 
 # Copy startup script and data folder into the container:
 COPY docker-entrypoint.sh /
-ADD data/ /data
+
 # Fix wrong line endings in the startup script and just to be save in data files:
 RUN sed -i.bak 's/\r$//' /docker-entrypoint.sh /data/*.* /data/scripts/*.sh
 # Run startup script & start apache2 (https://github.com/docker-library/php/blob/master/7.4/bullseye/apache/apache2-foreground)
