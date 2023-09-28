@@ -39,13 +39,23 @@ if [ ! -f /initFinished ]; then
 
     # Install Kitodo.Presentation:
     echo -e "${CLR_B}[MAIN] Install presentation:${NC}"
-    composer config platform.php 7.4
-    composer require kitodo/presentation
-    vendor/bin/typo3 extensionmanager:extension:install dlf
+    composer config platform.php 7.4.1
+    ## Add the custom repositories to the composer file:
+    jq '  .repositories += [
+            {"type": "git", "url": "https://github.com/csidirop/dfg-viewer.git" },
+            {"type": "git", "url": "https://github.com/UB-Mannheim/kitodo-presentation.git"},
+            {"type": "git", "url": "https://github.com/csidirop/slub_digitalcollections.git" }]
+        | .require += {"ub-mannheim/presentation": "dev-master"}
+        | . += {"minimum-stability": "dev"}' composer.json > composer-edit.json
+    mv composer.json composer.json.bak
+    mv composer-edit.json composer.json
+    composer update
+    # vendor/bin/typo3 extensionmanager:extension:install dlf
+    # vendor/bin/typo3 extensionmanager:extension:install dfgviewer
     chown -R www-data:www-data .
     ## Activate other useful extensions:
     ### .... INSERT HERE ....
-    vendor/bin/typo3 extensionmanager:extension:install info # (activating info (or any other) is a workaround so the site config is red correctly)
+    # vendor/bin/typo3 extensionmanager:extension:install info # (activating info (or any other) is a workaround so the site config is red correctly)
     vendor/bin/typo3 extension:list
 
     # Setup Kitodo.Presentation: (https://github.com/UB-Mannheim/kitodo-presentation/wiki/Installation-Kitodo.Presentation)

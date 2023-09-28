@@ -1,7 +1,7 @@
 # Use TYPO3 v10 base image based on Apache2 on Debian 11 bullseye
-# https://hub.docker.com/r/csidirop/typo3-v10/
-# https://github.com/csidirop/typo3-docker/tree/typo3-v10.x
-FROM csidirop/typo3-v10:10.4-230202
+# https://hub.docker.com/r/csidirop/typo3-v11/
+# https://github.com/csidirop/typo3-docker/tree/typo3-v11.x
+FROM csidirop/typo3-v11:11.5-230927
 
 LABEL authors='Christos Sidiropoulos <Christos.Sidiropoulos@uni-mannheim.de>'
 
@@ -10,7 +10,7 @@ ENV DB_PORT=3306
 
 EXPOSE 80
 
-# This Dockerfile aims to install a working TYPO3 v10 instance with the kitodo/presentation extension
+# This Dockerfile aims to install a working TYPO3 v11 instance with the kitodo/presentation extension
 # based on this guide: https://github.com/UB-Mannheim/kitodo-presentation/wiki
 
 # Update and install packages:
