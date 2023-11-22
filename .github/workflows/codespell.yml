@@ -2,7 +2,7 @@ name: PHPStan
 
 on:
     push:
-      branches: [ "master" ]
+      branches: [ "master", "dfg-viewer-6.x", "dfg-viewer-6.x-ocr", "presentation-v4.x" ]
     pull_request:
       branches: [ "master" ]
 
