@@ -43,9 +43,9 @@ if [ ! -f /initFinished ]; then
     ## Add the custom repositories to the composer file:
     jq '  .repositories += [
             {"type": "git", "url": "https://github.com/csidirop/dfg-viewer.git" },
-            {"type": "git", "url": "https://github.com/UB-Mannheim/kitodo-presentation.git"},
-            {"type": "git", "url": "https://github.com/csidirop/slub_digitalcollections.git" }]
-        | .require += {"ub-mannheim/presentation": "dev-master"}
+            {"type": "git", "url": "https://github.com/kitodo/kitodo-presentation.git"},
+            {"type": "git", "url": "https://github.com/ub-mannheim/ubma_digitalcollections.git" }]
+        | .require += {"csidirop/dfgviewer": "dev-typo3-v11-test"}
         | . += {"minimum-stability": "dev"}' composer.json > composer-edit.json
     mv composer.json composer.json.bak
     mv composer-edit.json composer.json
