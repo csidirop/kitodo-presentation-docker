@@ -20,6 +20,17 @@ if [ ! -f /initFinished ]; then
     # Wait for db to be ready: (https://docs.docker.com/compose/startup-order/)
     wait-for-it -t 0 ${DB_ADDR}:${DB_PORT}
 
+    # Check if TYPO3 is already installed:
+    tables=$(mysql -h db --user=$DB_USER --password=$DB_PASSWORD -D ${DB_NAME} -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '${DB_NAME}'" --batch --raw --skip-column-names)
+    echo $tables
+    if [ $tables -ne 0 ]; then
+        echo -e "${CLR_R}The database $DB_NAME exists -> TYPO3 is already installed. Not doing anything. That is ok if done on purpose!${NC}"
+        echo -e "${CLR_B}Starting apache2 and exiting setup script.${NC}"
+        exit 0  # Exit gracefully
+    else
+        echo -e "The database $DB_NAME does not exist -> TYPO3 is not installed. Doing setup."
+    fi
+
     # Setup TYPO3 with typo3console (https://docs.typo3.org/p/helhum/typo3-console/main/en-us/CommandReference/InstallSetup.html):
     cd /var/www/typo3/
     docker-php-ext-install -j$(nproc) mysqli
