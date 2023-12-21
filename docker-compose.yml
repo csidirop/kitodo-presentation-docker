@@ -10,7 +10,7 @@ services:
       - MARIADB_USER=$MARIADB_USER
       - MARIADB_PASSWORD=$MARIADB_PASSWORD
     volumes:
-      - ./volumes/database:/var/lib/mysql
+      - ./volumes/database:/var/lib/mysql:z
     restart: unless-stopped
   main:
     build:
