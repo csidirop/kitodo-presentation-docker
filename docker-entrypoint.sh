@@ -17,41 +17,49 @@ if [ ! -f /initFinished ]; then
 
     # Check if TYPO3 is already installed:
     tables=$(mysql -h db --user=$DB_USER --password=$DB_PASSWORD -D ${DB_NAME} -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '${DB_NAME}'" --batch --raw --skip-column-names)
-    echo $tables
+    printErrorLine "DB Tables found: $tables -> DB setup"
     if [ $tables -ne 0 ]; then
-        echo -e "${CLR_R}The database $DB_NAME exists -> TYPO3 is already installed. Not doing anything. That is ok if done on purpose!${NC}"
-        echo -e "${CLR_B}Starting apache2 and exiting setup script.${NC}"
-        exit 0  # Exit gracefully
+        printErrorLine "The database $DB_NAME exists -> TYPO3 is already installed. Not doing anything. That is ok if done on purpose!"
+        # exit 0  # Exit gracefully
     else
-        echo -e "The database $DB_NAME does not exist -> TYPO3 is not installed. Doing setup."
+        printInfoLine "The database $DB_NAME does not exist -> TYPO3 is not installed. Doing setup."
     fi
 
     # Setup TYPO3 with typo3console (https://docs.typo3.org/p/helhum/typo3-console/main/en-us/CommandReference/InstallSetup.html):
     cd /var/www/typo3/
     docker-php-ext-install -j$(nproc) mysqli
-    printHeadline "Starting TYPO3 auto setup:"
-    vendor/bin/typo3cms install:setup \
-        --use-existing-database \
-        --database-driver='mysqli' \
-        --database-user-name="${DB_USER}" \
-        --database-user-password="${DB_PASSWORD}" \
-        --database-host-name='db' \
-        --database-port=${DB_PORT} \
-        --database-name=${DB_NAME} \
-        --admin-user-name="${TYPO3_ADMIN_USER}" \
-        --admin-password="${TYPO3_ADMIN_PASSWORD}" \
-        --site-setup-type=no \
-        --site-name presentation \
-        --web-server-config=apache
+    printHeadline "Setting up TYPO3:"
+    if [ $tables -eq 0 ]; then # Only if TYPO3 is not installed yet:
+        printInfoLine "Starting TYPO3 auto setup:"
+        vendor/bin/typo3cms install:setup \
+            --use-existing-database \
+            --database-driver='mysqli' \
+            --database-user-name="${DB_USER}" \
+            --database-user-password="${DB_PASSWORD}" \
+            --database-host-name='db' \
+            --database-port=${DB_PORT} \
+            --database-name=${DB_NAME} \
+            --admin-user-name="${TYPO3_ADMIN_USER}" \
+            --admin-password="${TYPO3_ADMIN_PASSWORD}" \
+            --site-setup-type=no \
+            --site-name presentation \
+            --web-server-config=apache
+    else
+        printInfoLine "TYPO3 is already installed. Skipping TYPO3 auto setup."
+        # TODO add essential configuration files (LocalConfiguration.php, PackageStates.php).
+    fi
 
     # Install Kitodo.Presentation:
     printHeadline "Install presentation:"
     composer config platform.php 7.4
+    printErrorLine "composer require kitodo/presentation"
     composer require kitodo/presentation
+    printErrorLine "extensionmanager:extension:install dlf"
     vendor/bin/typo3 extensionmanager:extension:install dlf
     chown -R www-data:www-data .
     ## Activate other useful extensions:
     ### .... INSERT HERE ....
+    printErrorLine "extensionmanager:extension:install info"
     vendor/bin/typo3 extensionmanager:extension:install info # (activating info (or any other) is a workaround so the site config is red correctly)
     vendor/bin/typo3 extension:list
 
@@ -79,7 +87,7 @@ if [ ! -f /initFinished ]; then
     printHeadline "Setup DFG-Viewer: Update DB:"
 
     ## Add solr related pages and settings:
-    if [ $solr == 1 ]; then
+    if [ $solr == 1 ] && [ $tables -ne 0 ]; then # And only if TYPO3 is not installed yet:
         ### New Tenant & set core in List -> Solr Cores
         mysql -h db --user=$DB_USER --password=$DB_PASSWORD -v -D ${DB_NAME} -e "INSERT INTO tx_dlf_solrcores (pid, cruser_id, label, index_name) VALUES (3, 1, 'Solr Core (PID 1)','dlf');"
         #### Create Tenant Structures:
@@ -144,7 +152,11 @@ if [ ! -f /initFinished ]; then
 
     # Mark as finished:
     touch /initFinished
-    printSuccessLine "Finished setup!"
+    if [ $tables -ne 0 ]; then
+        printSuccessLine "Finished setup! (Used existing database)"
+    else 
+        printSuccessLine "Finished setup!"
+    fi
 fi
 
 if [ $PORT == 80 ]; then # default PORT
