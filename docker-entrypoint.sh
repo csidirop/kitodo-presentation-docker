@@ -34,9 +34,9 @@ if [ ! -f /initFinished ]; then
         --web-server-config=apache
 
     # Install Kitodo.Presentation:
-    printHeadline "Install presentation:"
+    printHeadline "Install presentation 5.x:"
     composer config platform.php 7.4
-    composer require kitodo/presentation
+    composer require kitodo/presentation:^5
     vendor/bin/typo3 extensionmanager:extension:install dlf
     chown -R www-data:www-data .
     ## Activate other useful extensions:
