@@ -39,11 +39,9 @@ if [ ! -f /initFinished ]; then
     composer config platform.php 8.2
     ## Add the custom repositories to the composer file:
     jq '  .repositories += [
-            {"type": "git", "url": "https://github.com/UB-Mannheim/dfg-viewer.git" },
-            {"type": "git", "url": "https://github.com/UB-Mannheim/kitodo-presentation.git"},
-            {"type": "git", "url": "https://github.com/UB-Mannheim/ubma_digitalcollections.git" },
+            {"type": "git", "url": "https://github.com/csidirop/kitodo-presentation.git"},
             {"type": "git", "url": "https://github.com/kitodo/php-iiif-prezi-reader.git"}]
-        | .require += {"ub-mannheim/dfgviewer": "master"}
+        | .require += {"csidirop/presentation": "dev-feat/viewer"}
         | . += {"minimum-stability": "dev"}' composer.json > composer-edit.json
     mv composer.json composer.json.bak
     mv composer-edit.json composer.json
