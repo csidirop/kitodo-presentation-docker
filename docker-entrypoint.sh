@@ -38,10 +38,17 @@ if [ ! -f /initFinished ]; then
     printHeadline "Install Kitodo.Presentation and DFG-Viewer:"
     composer config platform.php 8.2
     ## Add the custom repositories to the composer file:
+    # jq '  .repositories += [
+    #         {"type": "git", "url": "https://github.com/csidirop/kitodo-presentation.git"},
+    #         {"type": "git", "url": "https://github.com/kitodo/php-iiif-prezi-reader.git"}]
+    #     | .require += {"csidirop/presentation": "dev-feat/viewer2"}
+    #     | . += {"minimum-stability": "dev"}' composer.json > composer-edit.json
     jq '  .repositories += [
             {"type": "git", "url": "https://github.com/csidirop/kitodo-presentation.git"},
+            {"type": "git", "url": "https://github.com/csidirop/dfg-viewer.git"},
+            {"type": "git", "url": "https://github.com/csidirop/slub_digitalcollections.git"},
             {"type": "git", "url": "https://github.com/kitodo/php-iiif-prezi-reader.git"}]
-        | .require += {"csidirop/presentation": "dev-feat/viewer2"}
+        | .require += {"csidirop/dfgviewer": "dev-master"}
         | . += {"minimum-stability": "dev"}' composer.json > composer-edit.json
     mv composer.json composer.json.bak
     mv composer-edit.json composer.json

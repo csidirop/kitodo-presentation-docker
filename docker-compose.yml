@@ -7,7 +7,7 @@ services:
       - MARIADB_ROOT_PASSWORD=$MARIADB_ROOT_PASSWORD
       - MARIADB_USER=$MARIADB_USER
       - MARIADB_PASSWORD=$MARIADB_PASSWORD
-    #volumes:
+    # volumes:
     #  - ./volumes/database:/var/lib/mysql
     restart: unless-stopped
   main:
@@ -33,6 +33,8 @@ services:
       - PORT=$PORT
     volumes:
       - ./volumes/fileadmin:/var/www/typo3/public/fileadmin/
+      # - ./volumes/extensions:/var/www/typo3/vendor
+      - ./volumes/codex:/root/.codex
     depends_on:
       - db
     restart: unless-stopped
