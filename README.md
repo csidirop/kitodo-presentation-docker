@@ -47,7 +47,7 @@ While the main branch always offers the latest presentation version, the others 
 Usernames and passwords for the database and TYPO3 backend are passed as [environment variables](https://docs.docker.com/compose/environment-variables/) and stored inside [.env-File](https://github.com/UB-Mannheim/kitodo-presentation-docker/blob/main/.env.tmpl). It is of utmost importance to change these before productive use! Also the file should only be readable for root users.
 
 ### Environment variables
-There are 13 environment variables. 8 of them that can be set in the [.env-File](https://github.com/UB-Mannheim/kitodo-presentation-docker/blob/main/.env.tmpl). First copy (or rename) `.env.tmpl` to `.env` and edit variables as needed (changing passwords like TYPO3_ADMIN_PASSWORD is recommended!).
+The user-configurable environment variables can be set in the [.env-File](https://github.com/UB-Mannheim/kitodo-presentation-docker/blob/main/.env.tmpl). First copy (or rename) `.env.tmpl` to `.env` and edit variables as needed (changing passwords like TYPO3_ADMIN_PASSWORD is recommended!).
 
 The following table shows the default values and a short description.
 
@@ -68,7 +68,36 @@ The following table shows the default values and a short description.
 | PQDN                           |    _localhost_    | Partially qualified domain name (eg. _www.test.de_)     |
 | PHP_MEMORY_LIMIT               |    _512M_         | PHP memory limit                                        |
 
-The other 5 variables are set in the docker-compose.yml and should not be changed.
+#### Xdebug variables:
+
+|          **Name**          |     **Default Value**      |                         **Description**                         |
+|:---------------------------|:--------------------------:|:----------------------------------------------------------------|
+| XDEBUG_MODE                |           _off_            | Set to `debug` to enable step debugging                          |
+| XDEBUG_START_WITH_REQUEST  |         _trigger_          | Start debugging only when an Xdebug trigger is present           |
+| XDEBUG_CLIENT_HOST         | _host.docker.internal_     | Hostname or IP address of the machine running the IDE             |
+| XDEBUG_CLIENT_PORT         |           _9003_           | Port on which the IDE listens for Xdebug                          |
+
+The remaining internal variables are set in the docker-compose.yml and should not be changed.
+
+### Xdebug
+Xdebug is installed in the `main` image but disabled by default to avoid runtime overhead. To use step debugging:
+
+1. Set `XDEBUG_MODE=debug` in `.env`.
+2. Configure the IDE to listen for Xdebug 3 connections on port `9003`.
+3. Configure the IDE path mapping. For Presentation development, map the container path `/var/www/typo3/vendor/kitodo/presentation` to the corresponding local Kitodo.Presentation checkout.
+4. Build and recreate the application container:
+
+       docker compose up -d --build main
+
+5. Start listening in the IDE and trigger a browser request, for example:
+
+       http://localhost/typo3/?XDEBUG_TRIGGER=1
+
+   For a CLI command, pass the trigger into the container:
+
+       docker compose exec -e XDEBUG_TRIGGER=1 main vendor/bin/typo3 list
+
+Xdebug connects from the container to the IDE, so port `9003` must not be published by Docker. `host.docker.internal` is mapped to Docker's host gateway and works on Linux as well as Docker Desktop. With trigger mode, browser extensions that set the `XDEBUG_SESSION` cookie can also start a debugging session.
 
 ### solr
 Apache Solr is an open-source search platform with full-text search, hit highlighting, faceted search and real-time indexing.

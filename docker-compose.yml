@@ -31,6 +31,12 @@ services:
       - TYPO3_ADDITIONAL_CONFIGURATION=$TYPO3_ADDITIONAL_CONFIGURATION
       - HOST=$PQDN
       - PORT=$PORT
+      - XDEBUG_MODE=${XDEBUG_MODE:-off}
+      - XDEBUG_START_WITH_REQUEST=${XDEBUG_START_WITH_REQUEST:-trigger}
+      - XDEBUG_CLIENT_HOST=${XDEBUG_CLIENT_HOST:-host.docker.internal}
+      - XDEBUG_CLIENT_PORT=${XDEBUG_CLIENT_PORT:-9003}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./volumes/fileadmin:/var/www/typo3/public/fileadmin/
     depends_on:
