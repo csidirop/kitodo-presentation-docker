@@ -18,6 +18,10 @@ if [ ! -f /initFinished ]; then
     # Setup TYPO3 with typo3console (https://docs.typo3.org/p/helhum/typo3-console/main/en-us/CommandReference/InstallSetup.html):
     cd /var/www/typo3/
     printHeadline "Starting TYPO3 auto setup:"
+    # DFG Viewer 7 is limited to TYPO3 12. Composer 2.9 blocks all currently
+    # available TYPO3 12 releases because they are affected by advisories, so
+    # dependency resolution for this legacy stack must be allowed explicitly.
+    composer config audit.block-insecure false
     composer require helhum/typo3-console
     vendor/bin/typo3 install:setup \
         --no-interaction \
@@ -39,6 +43,7 @@ if [ ! -f /initFinished ]; then
     composer config platform.php 8.2
     composer require slub/dfgviewer:^7
     composer update
+    composer config audit.block-insecure true
     vendor/bin/typo3 extension:setup
 
     chown -R www-data:www-data .
