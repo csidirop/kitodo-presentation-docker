@@ -1,4 +1,6 @@
 base: '${HOST}'
+dependencies:
+  - causal/oidc
 languages:
   -
     title: 'Presentation (german)'

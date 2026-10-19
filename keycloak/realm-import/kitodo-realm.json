@@ -1,0 +1,103 @@
+{
+  "realm": "${OIDC_REALM}",
+  "enabled": true,
+  "displayName": "Kitodo Presentation",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "roles": {
+    "realm": [
+      {
+        "name": "${OIDC_REQUIRED_ROLE}",
+        "description": "Can access protected Kitodo resources"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "${OIDC_CLIENT_ID}",
+      "name": "Kitodo Presentation",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "${OIDC_CLIENT_SECRET}",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "${OIDC_REDIRECT_URI}"
+      ],
+      "webOrigins": [
+        "${OIDC_WEB_ORIGIN}"
+      ],
+      "protocolMappers": [
+        {
+          "name": "realm roles for Kitodo",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "access.token.claim": "true",
+            "claim.name": "Roles",
+            "id.token.claim": "true",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ],
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "roles",
+        "profile",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "${OIDC_WEB_ORIGIN}/*"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "reader",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Demo",
+      "lastName": "Reader",
+      "email": "reader@example.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "reader123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "${OIDC_REQUIRED_ROLE}"
+      ]
+    },
+    {
+      "username": "blocked",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Demo",
+      "lastName": "Blocked",
+      "email": "blocked@example.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "blocked123",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

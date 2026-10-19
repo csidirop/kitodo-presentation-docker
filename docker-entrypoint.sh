@@ -44,15 +44,60 @@ if [ ! -f /initFinished ]; then
         --site-name presentation \
         --web-server-config=apache
 
-    # Install Kitodo.Presentation:
-    printHeadline "Install Presentation:"
+    # Install Kitodo.Presentation, Kitodo.AccessRights and the OIDC client:
+    printHeadline "Install Presentation, AccessRights and OIDC:"
     composer config platform.php 8.4
     # Presentation 7 requires 0.3.2, but upstream has not published that tag. 
     #TODO: remove the commit hash when upstream has published 0.3.2
     composer require --with-all-dependencies \
         "ubl/php-iiif-prezi-reader:dev-master#57d3471cd1210cf78388e1d2b3e4c0ba1ef2688f as 0.3.2" \
-        "kitodo/presentation:^7.0"
+        "kitodo/presentation:^7.0" \
+        "kitodo/accessrights:@dev" \
+        "causal/oidc:^5.0.1"
     vendor/bin/typo3 extension:setup
+
+    # Map the role emitted by the imported Keycloak realm to a TYPO3 frontend group.
+    if [[ ! "${OIDC_REQUIRED_ROLE}" =~ ^[[:alnum:]_.:-]+$ ]]; then
+        printErrorLine "OIDC_REQUIRED_ROLE contains unsupported characters"
+        exit 1
+    fi
+    oidcGroupId=$(mysql --disable-ssl \
+        -h "${DB_ADDR}" \
+        --user="${DB_USER}" \
+        --password="${DB_PASSWORD}" \
+        --skip-column-names \
+        --batch \
+        "${DB_NAME}" \
+        -e "INSERT INTO fe_groups (pid, tstamp, crdate, title, tx_oidc_pattern)
+            SELECT 0, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), 'OIDC ${OIDC_REQUIRED_ROLE}', '${OIDC_REQUIRED_ROLE}'
+            WHERE NOT EXISTS (
+                SELECT 1 FROM fe_groups WHERE pid = 0 AND tx_oidc_pattern = '${OIDC_REQUIRED_ROLE}'
+            );
+            SELECT uid FROM fe_groups
+            WHERE pid = 0 AND tx_oidc_pattern = '${OIDC_REQUIRED_ROLE}'
+            ORDER BY uid LIMIT 1;")
+    if [[ ! "${oidcGroupId}" =~ ^[0-9]+$ ]]; then
+        printErrorLine "Could not create or resolve the OIDC frontend group"
+        exit 1
+    fi
+
+    # The authorization/logout URLs are browser-facing; token and user-info calls
+    # use Keycloak's internal Compose hostname.
+    oidcRealmPath="realms/${OIDC_REALM}/protocol/openid-connect"
+    vendor/bin/typo3 configuration:set EXTENSIONS/oidc/enableFrontendAuthentication 1
+    vendor/bin/typo3 configuration:set EXTENSIONS/oidc/enableBackendAuthentication 0
+    vendor/bin/typo3 configuration:set EXTENSIONS/oidc/enableCodeVerifier 1
+    vendor/bin/typo3 configuration:set EXTENSIONS/oidc/usersStoragePid 0
+    vendor/bin/typo3 configuration:set EXTENSIONS/oidc/usersDefaultGroup ""
+    vendor/bin/typo3 configuration:set EXTENSIONS/oidc/oidcClientKey "${OIDC_CLIENT_ID}"
+    vendor/bin/typo3 configuration:set EXTENSIONS/oidc/oidcClientSecret "${OIDC_CLIENT_SECRET}"
+    vendor/bin/typo3 configuration:set EXTENSIONS/oidc/oidcClientScopes "openid,profile,email"
+    vendor/bin/typo3 configuration:set EXTENSIONS/oidc/oidcRedirectUri "${OIDC_REDIRECT_URI}"
+    vendor/bin/typo3 configuration:set EXTENSIONS/oidc/oidcEndpointAuthorize "${OIDC_BROWSER_BASE_URL}/${oidcRealmPath}/auth"
+    vendor/bin/typo3 configuration:set EXTENSIONS/oidc/oidcEndpointLogout "${OIDC_BROWSER_BASE_URL}/${oidcRealmPath}/logout"
+    vendor/bin/typo3 configuration:set EXTENSIONS/oidc/oidcEndpointToken "${OIDC_INTERNAL_BASE_URL}/${oidcRealmPath}/token"
+    vendor/bin/typo3 configuration:set EXTENSIONS/oidc/oidcEndpointUserInfo "${OIDC_INTERNAL_BASE_URL}/${oidcRealmPath}/userinfo"
+    vendor/bin/typo3 configuration:set EXTENSIONS/oidc/oidcEndpointRevoke "${OIDC_INTERNAL_BASE_URL}/${oidcRealmPath}/revoke"
 
     chown -R www-data:www-data .
     ## Activate other useful extensions:
