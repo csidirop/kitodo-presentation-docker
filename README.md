@@ -44,10 +44,10 @@ While the main branch always offers the latest presentation version, the others 
     git checkout <branchname>
 
 ### Change credentials
-Usernames and passwords for the database and TYPO3 backend are passed as [environment variables](https://docs.docker.com/compose/environment-variables/) and stored inside [.env-File](https://github.com/UB-Mannheim/kitodo-presentation-docker/blob/main/.env.tmpl). It is of utmost importance to change these before productive use! Also the file should only be readable for root users.
+Usernames, passwords and OIDC client credentials are passed as [environment variables](https://docs.docker.com/compose/environment-variables/) and stored inside [.env-File](https://github.com/UB-Mannheim/kitodo-presentation-docker/blob/main/.env.tmpl). The template contains development-only credentials. Change all passwords and client secrets before using the stack outside a local development environment. The `.env` file should only be readable by its owner.
 
 ### Environment variables
-The user-configurable environment variables can be set in the [.env-File](https://github.com/UB-Mannheim/kitodo-presentation-docker/blob/main/.env.tmpl). First copy (or rename) `.env.tmpl` to `.env` and edit variables as needed (changing passwords like TYPO3_ADMIN_PASSWORD is recommended!).
+Copy `.env.tmpl` to `.env` and edit the variables as needed.
 
 The following table shows the default values and a short description.
 
@@ -63,7 +63,7 @@ The following table shows the default values and a short description.
 |:-------------------------------|:-----------------:|:--------------------------------------------------------|
 | PORT                           |        _80_       | Local port for TYPO3                                    |
 | TYPO3_ADMIN_USER               |       _test_      | TYPO3 admin username                                    |
-| TYPO3_ADMIN_PASSWORD           |    _'test1234'_   | TYPO3 admin password in ''                              |
+| TYPO3_ADMIN_PASSWORD           |    _'Test1234!'_  | TYPO3 admin password in ''                              |
 | TYPO3_ADDITIONAL_CONFIGURATION |      _false_      | Set to true if you want to add additional configuration |
 | PQDN                           |    _localhost_    | Partially qualified domain name (eg. _www.test.de_)     |
 | PHP_MEMORY_LIMIT               |    _512M_         | PHP memory limit                                        |
@@ -76,6 +76,24 @@ The following table shows the default values and a short description.
 | XDEBUG_START_WITH_REQUEST  |         _trigger_          | Start debugging only when an Xdebug trigger is present           |
 | XDEBUG_CLIENT_HOST         |        _127.0.0.1_         | Address of the debugger; defaults to the same container as PHP    |
 | XDEBUG_CLIENT_PORT         |           _9003_           | Port on which the IDE listens for Xdebug                          |
+
+#### Keycloak and OIDC Variables:
+
+| Variable | Default | Description |
+|:---------|:--------|:------------|
+| KEYCLOAK_PORT | 8081 | Local Keycloak port |
+| KC_BOOTSTRAP_ADMIN_USERNAME | admin | Keycloak administrator username |
+| KC_BOOTSTRAP_ADMIN_PASSWORD | admin | Keycloak administrator password |
+| OIDC_REALM | kitodo | Imported Keycloak realm |
+| OIDC_CLIENT_ID | kitodo-presentation | Confidential OIDC client ID |
+| OIDC_CLIENT_SECRET | kitodo-presentation-secret-change-me | Shared client secret used by Keycloak and TYPO3 |
+| OIDC_REQUIRED_ROLE | image-reader | Keycloak realm role mapped to a TYPO3 frontend group |
+| OIDC_BROWSER_BASE_URL | http://localhost:8081 | Keycloak URL reachable by the browser |
+| OIDC_INTERNAL_BASE_URL | http://keycloak:8080 | Keycloak URL reachable inside the Compose network |
+| OIDC_REDIRECT_URI | http://localhost/ | Exact TYPO3 callback URI registered in Keycloak |
+| OIDC_WEB_ORIGIN | http://localhost | Browser origin registered in Keycloak |
+
+If TYPO3 is exposed on a different hostname, scheme, or port, update `PQDN`, `PORT`, `OIDC_REDIRECT_URI`, and `OIDC_WEB_ORIGIN` together. The redirect URI must include the trailing slash and exactly match the public TYPO3 URL.
 
 The remaining internal variables are set in the docker-compose.yml and should not be changed.
 
@@ -92,6 +110,23 @@ Xdebug is disabled by default. The debugging workflow uses VS Code attached to t
    For a CLI command, pass the trigger into the container:
 
        docker compose exec -e XDEBUG_TRIGGER=1 main vendor/bin/typo3 list
+
+### Access rights and OpenID Connect
+
+The startup script installs `kitodo/accessrights:@dev` from
+`packages/kitodo-accessrights`, plus `kitodo/presentation:^7.0` and
+`causal/oidc:^5.0.1`. Clone the local
+[Kitodo.AccessRights checkout](https://github.com/kitodo-rbo/kitodo-accessrights)
+into that package directory before building the stack.
+
+The imported realm sends realm roles in the top-level `Roles` claim expected by `causal/oidc`. During TYPO3 initialization, the `image-reader` role (or `OIDC_REQUIRED_ROLE`) is mapped to a frontend user group.
+
+Keycloak includes two development users:
+
+- `reader / reader123` has the required role and can be mapped to a TYPO3 frontend user.
+- `blocked / blocked123` has no required role and is denied when no other frontend group mapping applies.
+
+Add the **OIDC Login** content element to a TYPO3 login page to start the frontend login flow. The `causal/oidc` site set and standard user-field mapping are enabled by the generated site configuration.
 
 ### solr
 Apache Solr is an open-source search platform with full-text search, hit highlighting, faceted search and real-time indexing.
@@ -118,6 +153,8 @@ The optional profiles can also be combined:
 
 ### Ready:
 TYPO3 backend can be accessed at: http://localhost/typo3/ (of whatever you set as PQDN)
+
+The Keycloak administration console is available at http://localhost:8081/admin/ with the configured bootstrap administrator credentials.
 
 
 ### Run further scripts:

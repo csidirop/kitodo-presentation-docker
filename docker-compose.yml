@@ -1,4 +1,24 @@
 services:
+  keycloak:
+    image: keycloak/keycloak:26.8.1
+    container_name: kitodo-presentation-keycloak
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD:-admin}
+      KC_HOSTNAME: ${OIDC_BROWSER_BASE_URL:-http://localhost:8081}
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      OIDC_REALM: ${OIDC_REALM:-kitodo}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-kitodo-presentation}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-kitodo-presentation-secret-change-me}
+      OIDC_REQUIRED_ROLE: ${OIDC_REQUIRED_ROLE:-image-reader}
+      OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:-http://localhost/}
+      OIDC_WEB_ORIGIN: ${OIDC_WEB_ORIGIN:-http://localhost}
+    volumes:
+      - ./keycloak/realm-import:/opt/keycloak/data/import:ro
+    ports:
+      - "0.0.0.0:${KEYCLOAK_PORT:-8081}:8080"
+    restart: unless-stopped
   db:
     container_name: kitodo-presentation-db
     image: mariadb:10
@@ -36,6 +56,13 @@ services:
       - XDEBUG_START_WITH_REQUEST=${XDEBUG_START_WITH_REQUEST:-trigger}
       - XDEBUG_CLIENT_HOST=${XDEBUG_CLIENT_HOST:-127.0.0.1}
       - XDEBUG_CLIENT_PORT=${XDEBUG_CLIENT_PORT:-9003}
+      - OIDC_REALM=${OIDC_REALM:-kitodo}
+      - OIDC_CLIENT_ID=${OIDC_CLIENT_ID:-kitodo-presentation}
+      - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET:-kitodo-presentation-secret-change-me}
+      - OIDC_REQUIRED_ROLE=${OIDC_REQUIRED_ROLE:-image-reader}
+      - OIDC_BROWSER_BASE_URL=${OIDC_BROWSER_BASE_URL:-http://localhost:8081}
+      - OIDC_INTERNAL_BASE_URL=${OIDC_INTERNAL_BASE_URL:-http://keycloak:8080}
+      - OIDC_REDIRECT_URI=${OIDC_REDIRECT_URI:-http://localhost/}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -43,6 +70,7 @@ services:
       - ./packages:/var/www/typo3/packages
     depends_on:
       - db
+      - keycloak
     restart: unless-stopped
   solr:
     container_name: kitodo-presentation-solr
