@@ -56,6 +56,14 @@ if [ ! -f /initFinished ]; then
         "causal/oidc:^5.0.1"
     vendor/bin/typo3 extension:setup
 
+    # Create the root rendering template and a dedicated OIDC login page for
+    # every profile. These records must not depend on the optional Solr service.
+    mysql --disable-ssl \
+        -h "${DB_ADDR}" \
+        --user="${DB_USER}" \
+        --password="${DB_PASSWORD}" \
+        "${DB_NAME}" < /data/frontend-pages.sql
+
     # Map the role emitted by the imported Keycloak realm to a TYPO3 frontend group.
     if [[ ! "${OIDC_REQUIRED_ROLE}" =~ ^[[:alnum:]_.:-]+$ ]]; then
         printErrorLine "OIDC_REQUIRED_ROLE contains unsupported characters"

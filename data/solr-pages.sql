@@ -1,21 +1,11 @@
--- Minimal frontend records used by the optional Solr development profile.
+-- Search and collection records used by the optional Solr development profile.
 -- Named columns keep these inserts stable when TYPO3 adds or removes fields.
 
 INSERT INTO pages (
     uid, pid, tstamp, crdate, deleted, hidden, sorting, perms_userid, perms_groupid, perms_user, perms_group, perms_everybody, title, slug, doktype, is_siteroot
 ) VALUES
-    (1, 0, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), 0, 0, 128, 1, 0, 31, 27, 0, 'Presentation', '/', 1, 1),
     (7, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), 0, 0, 256, 1, 0, 31, 27, 0, 'Suche', '/suche', 1, 0),
     (8, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), 0, 0, 128, 1, 0, 31, 27, 0, 'Sammlungen', '/sammlungen', 1, 0);
-
-INSERT INTO sys_template (
-    uid, pid, tstamp, crdate, deleted, hidden, sorting, title, root, clear, include_static_file, constants, config
-) VALUES (
-    1, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), 0, 0, 128, 'Presentation', 1, 1,
-    'EXT:fluid_styled_content/Configuration/TypoScript/,EXT:dlf/Configuration/TypoScript/',
-    'plugin.tx_dlf.persistence.storagePid = 3\nplugin.tx_dlf.persistence.solrCoreUid = 1',
-    'page = PAGE\npage.10 < styles.content.get'
-);
 
 INSERT INTO tt_content (
     uid, pid, tstamp, crdate, deleted, hidden, sorting, CType, header

@@ -1,5 +1,6 @@
 base: '${HOST}'
 dependencies:
+  - typo3/fluid-styled-content
   - causal/oidc
 languages:
   -

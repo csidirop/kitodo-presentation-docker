@@ -126,7 +126,7 @@ Keycloak includes two development users:
 - `reader / reader123` has the required role and can be mapped to a TYPO3 frontend user.
 - `blocked / blocked123` has no required role and is denied when no other frontend group mapping applies.
 
-Add the **OIDC Login** content element to a TYPO3 login page to start the frontend login flow. The `causal/oidc` site set and standard user-field mapping are enabled by the generated site configuration.
+The startup script creates a hidden `/login` page with an **OIDC Login** content element. The `causal/oidc` site set, Fluid Styled Content, and standard user-field mapping are enabled by the generated site configuration.
 
 ### solr
 Apache Solr is an open-source search platform with full-text search, hit highlighting, faceted search and real-time indexing.
