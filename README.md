@@ -43,6 +43,10 @@ While the main branch always offers the latest presentation version, the others 
 ### Checkout branch
     git checkout <branchname>
 
+Initialize the submodules after checking out the branch:
+
+    git submodule update --init --recursive
+
 ### Change credentials
 Usernames, passwords and OIDC client credentials are passed as [environment variables](https://docs.docker.com/compose/environment-variables/) and stored inside [.env-File](https://github.com/UB-Mannheim/kitodo-presentation-docker/blob/main/.env.tmpl). The template contains development-only credentials. Change all passwords and client secrets before using the stack outside a local development environment. The `.env` file should only be readable by its owner.
 
@@ -115,9 +119,23 @@ Xdebug is disabled by default. The debugging workflow uses VS Code attached to t
 
 The startup script installs `kitodo/accessrights:@dev` from
 `packages/kitodo-accessrights`, plus `kitodo/presentation:^7.0` and
-`causal/oidc:^5.0.1`. Clone the local
+`causal/oidc:^5.0.1`. The
 [Kitodo.AccessRights checkout](https://github.com/kitodo-rbo/kitodo-accessrights)
-into that package directory before building the stack.
+is tracked as a Git submodule in that package directory. Initialize the
+submodules before building the stack using the command above.
+
+The submodule tracks `main` for remote updates. Normal submodule initialization
+checks out the commit recorded by this repository. To update to the latest
+commit on the configured branch, run:
+
+```sh
+git submodule update --remote packages/kitodo-accessrights
+git add packages/kitodo-accessrights
+```
+
+Commit the updated submodule reference with the parent repository. To track a
+different branch later, run `git submodule set-branch --branch <branchname>
+packages/kitodo-accessrights` and commit the changed `.gitmodules` as well.
 
 The imported realm sends realm roles in the top-level `Roles` claim expected by `causal/oidc`. During TYPO3 initialization, the `image-reader` role (or `OIDC_REQUIRED_ROLE`) is mapped to a frontend user group.
 

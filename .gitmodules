@@ -1,0 +1,4 @@
+[submodule "packages/kitodo-accessrights"]
+	path = packages/kitodo-accessrights
+	url = https://github.com/kitodo-rbo/kitodo-accessrights.git
+	branch = main
