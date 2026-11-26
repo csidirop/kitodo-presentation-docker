@@ -21,8 +21,9 @@ While the main branch always offers the latest presentation version, the others 
 #### Presentation:
 | **branch** 	| **dfg-viewer** 	| **presentation** 	| **solr** 	| **base image** 	| **last update** 	|
 |---	|---	|---	|---	|---	|---	|
-| [main](https://github.com/UB-Mannheim/kitodo-presentation-docker) 	| - 	| [newest](https://github.com/kitodo/kitodo-presentation/releases) 	| [8.11.x](https://github.com/apache/solr-docker/tree/main/8.11) 	| [typo3-v12](https://github.com/csidirop/typo3-docker/tree/typo3-v12.x) 	| [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/UB-Mannheim/kitodo-presentation-docker/main?label=%20)](https://github.com/UB-Mannheim/kitodo-presentation-docker/commits/main) 	|
-| [presentation-v6.x](https://github.com/UB-Mannheim/kitodo-presentation-docker/tree/presentation-v6.x) 	| - 	| [6.0.0](https://github.com/kitodo/kitodo-presentation/releases/tag/v4.1.0) 	| [8.11.x](https://github.com/apache/solr-docker/tree/main/8.11) 	| [typo3-v12](https://github.com/csidirop/typo3-docker/tree/typo3-v12.x) 	| [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/UB-Mannheim/kitodo-presentation-docker/presentation-v6.x?label=%20)](https://github.com/UB-Mannheim/kitodo-presentation-docker/commits/presentation-v6.x) 	|
+| [main](https://github.com/UB-Mannheim/kitodo-presentation-docker) 	| - 	| [newest](https://github.com/kitodo/kitodo-presentation/releases) 	| [8.11.x](https://github.com/apache/solr-docker/tree/main/8.11) 	| [typo3-v13](https://github.com/csidirop/typo3-docker/tree/typo3-v13.x) 	| [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/UB-Mannheim/kitodo-presentation-docker/main?label=%20)](https://github.com/UB-Mannheim/kitodo-presentation-docker/commits/main) 	|
+| [presentation-v7.x](https://github.com/UB-Mannheim/kitodo-presentation-docker/tree/presentation-v7.x) 	| - 	| [7.0.0](https://github.com/kitodo/kitodo-presentation/releases/tag/v7.0.0) 	| [8.11.x](https://github.com/apache/solr-docker/tree/main/8.11) 	| [typo3-v13](https://github.com/csidirop/typo3-docker/tree/typo3-v13.x) 	| [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/UB-Mannheim/kitodo-presentation-docker/presentation-v7.x?label=%20)](https://github.com/UB-Mannheim/kitodo-presentation-docker/commits/presentation-v7.x) 	|
+| [presentation-v6.x](https://github.com/UB-Mannheim/kitodo-presentation-docker/tree/presentation-v6.x) 	| - 	| [6.0.0](https://github.com/kitodo/kitodo-presentation/releases/tag/v6.0.0) 	| [8.11.x](https://github.com/apache/solr-docker/tree/main/8.11) 	| [typo3-v12](https://github.com/csidirop/typo3-docker/tree/typo3-v12.x) 	| [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/UB-Mannheim/kitodo-presentation-docker/presentation-v6.x?label=%20)](https://github.com/UB-Mannheim/kitodo-presentation-docker/commits/presentation-v6.x) 	|
 | *presentation-v5.x* | - | - | - | - | - |
 | [presentation-v4.x](https://github.com/UB-Mannheim/kitodo-presentation-docker/tree/presentation-v4.x) 	| - 	| [4.1.0](https://github.com/kitodo/kitodo-presentation/releases/tag/v4.1.0) 	| [8.11.x](https://github.com/apache/solr-docker/tree/main/8.11) 	| [typo3-v10](https://github.com/csidirop/typo3-docker/tree/typo3-v10.x) 	| [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/UB-Mannheim/kitodo-presentation-docker/presentation-v4.x?label=%20)](https://github.com/UB-Mannheim/kitodo-presentation-docker/commits/presentation-v4.x) 	|
 | [presentation-v3.x](https://github.com/UB-Mannheim/kitodo-presentation-docker/tree/presentation-v3.x) 	| - 	| [3.3.4](https://github.com/kitodo/kitodo-presentation/releases/tag/v3.3.4) 	| - 	| [typo3-v9](https://github.com/csidirop/typo3-docker/tree/typo3-v9.x) 	| [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/UB-Mannheim/kitodo-presentation-docker/presentation-v3.x?label=%20)](https://github.com/UB-Mannheim/kitodo-presentation-docker/commits/presentation-v3.x) 	|
@@ -46,7 +47,7 @@ While the main branch always offers the latest presentation version, the others 
 Usernames and passwords for the database and TYPO3 backend are passed as [environment variables](https://docs.docker.com/compose/environment-variables/) and stored inside [.env-File](https://github.com/UB-Mannheim/kitodo-presentation-docker/blob/main/.env.tmpl). It is of utmost importance to change these before productive use! Also the file should only be readable for root users.
 
 ### Environment variables
-There are 13 environment variables. 8 of them that can be set in the [.env-File](https://github.com/UB-Mannheim/kitodo-presentation-docker/blob/main/.env.tmpl). First copy (or rename) `.env.tmpl` to `.env` and edit variables as needed (changing passwords like TYPO3_ADMIN_PASSWORD is recommended!).
+The user-configurable environment variables can be set in the [.env-File](https://github.com/UB-Mannheim/kitodo-presentation-docker/blob/main/.env.tmpl). First copy (or rename) `.env.tmpl` to `.env` and edit variables as needed (changing passwords like TYPO3_ADMIN_PASSWORD is recommended!).
 
 The following table shows the default values and a short description.
 
@@ -67,11 +68,38 @@ The following table shows the default values and a short description.
 | PQDN                           |    _localhost_    | Partially qualified domain name (eg. _www.test.de_)     |
 | PHP_MEMORY_LIMIT               |    _512M_         | PHP memory limit                                        |
 
-The other 5 variables are set in the docker-compose.yml and should not be changed.
+#### Xdebug variables:
+
+|          **Name**          |     **Default Value**      |                         **Description**                         |
+|:---------------------------|:--------------------------:|:----------------------------------------------------------------|
+| XDEBUG_MODE                |           _off_            | Set to `debug` to enable step debugging                          |
+| XDEBUG_START_WITH_REQUEST  |         _trigger_          | Start debugging only when an Xdebug trigger is present           |
+| XDEBUG_CLIENT_HOST         |        _127.0.0.1_         | Address of the debugger; defaults to the same container as PHP    |
+| XDEBUG_CLIENT_PORT         |           _9003_           | Port on which the IDE listens for Xdebug                          |
+
+The remaining internal variables are set in the docker-compose.yml and should not be changed.
+
+### Xdebug
+Xdebug is disabled by default. The debugging workflow uses VS Code attached to the running container, where you can edit the PHP source directly.
+`XDEBUG_CLIENT_HOST` defaults to `127.0.0.1` because PHP and the debugger run in the same container. If the debugger runs on the Docker host instead, set `XDEBUG_CLIENT_HOST=host.docker.internal` and configure the IDE's path mappings for your local source files.
+
+1. Set `XDEBUG_MODE=debug` in the host's `.env` file.
+2. Copy the provided [launch configuration template](data/launch.json.tmpl) from a terminal inside the attached container
+3. Start listening in the IDE and trigger a browser request, for example:
+
+       http://localhost/typo3/?XDEBUG_TRIGGER=1
+
+   For a CLI command, pass the trigger into the container:
+
+       docker compose exec -e XDEBUG_TRIGGER=1 main vendor/bin/typo3 list
 
 ### solr
 Apache Solr is an open-source search platform with full-text search, hit highlighting, faceted search and real-time indexing.
 To create an additional solr container use the docker profile `with-solr` when starting the containers.
+
+### phpmyadmin
+[phpMyAdmin](https://www.phpmyadmin.net/) is a web-based tool for managing MySQL/MariaDB databases.
+To create an additional phpMyAdmin container use the docker profile `with-phpmyadmin` when starting the containers.
 
 ### Run images:
     docker compose up
@@ -79,6 +107,14 @@ To create an additional solr container use the docker profile `with-solr` when s
 or with solr
 
     docker compose --profile with-solr up
+
+or with phpMyAdmin
+
+    docker compose --profile with-phpmyadmin up
+
+The optional profiles can also be combined:
+
+    docker compose --profile with-solr --profile with-phpmyadmin up
 
 ### Ready:
 TYPO3 backend can be accessed at: http://localhost/typo3/ (of whatever you set as PQDN)
@@ -90,6 +126,10 @@ You can customize your setup by adding additional scripts! Just throw them into 
 
 You can temporally disable your scripts by changing the extension to something else like `.off`. You can even add more directories your scripts can refer to.
 
+### Local extensions
+
+Place project-specific TYPO3 extensions and site packages in `packages/`.
+
 ## Code and User Feedback
 Please file your bug reports to [issues](https://github.com/UB-Mannheim/kitodo-presentation-docker/issues).
 Make sure that you are using the latest version of the software before sending a report.
@@ -100,7 +140,7 @@ This also means making sure that old docker caches/images/containers are not pre
   - otherwise remove it with `docker rmi <image-ids>`
 - no presentation-containers present:
   - `docker container ls -a` should not show any kitodo-presentation container
-  - run `docker compose down` to "stop containes and remove containers, networks, volumes, and images created by `docker compose up`"
+  - run `docker compose down` to stop and remove containers and networks created by `docker compose up`; volumes and images are only removed when using `--volumes` and `--rmi`, respectively. Because this stack does not currently configure a persistent database volume, removing the database container also removes its data.
   - run `docker rm <container_ID/NAME>` if anything kitodo-presentation related still present
 - build without using cached layers (may take a while):
   - `docker compose build --no-cache`

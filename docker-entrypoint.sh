@@ -18,6 +18,16 @@ if [ ! -f /initFinished ]; then
     # Setup TYPO3 with typo3console (https://docs.typo3.org/p/helhum/typo3-console/main/en-us/CommandReference/InstallSetup.html):
     cd /var/www/typo3/
     printHeadline "Starting TYPO3 auto setup:"
+
+    # Make locally developed extensions and site packages available to Composer:
+    for packagePath in /var/www/typo3/packages/*; do
+        git config --global --add safe.directory "${packagePath}"
+    done
+    composer config repositories.local-packages path 'packages/*'
+
+    # Refresh the complete dependency set before adding extensions. Updating only the requested extension cannot unlock every TYPO3
+    # package, even with --with-all-dependencies.
+    composer update --with-all-dependencies --no-interaction
     composer require helhum/typo3-console
     vendor/bin/typo3 install:setup \
         --no-interaction \
@@ -34,27 +44,14 @@ if [ ! -f /initFinished ]; then
         --site-name presentation \
         --web-server-config=apache
 
-    # Install newest Kitodo.Presentation and DFG-Viewer versions on packagist:
-    printHeadline "Install Kitodo.Presentation and DFG-Viewer:"
-    composer config platform.php 8.2
-    ## Add the custom repositories to the composer file:
-    jq '  .repositories += [
-            {"type": "git", "url": "https://github.com/csidirop/kitodo-presentation.git"},
-            {"type": "git", "url": "https://github.com/kitodo/php-iiif-prezi-reader.git"}]
-        | .require += {"csidirop/presentation": "dev-feat/viewer4.1"}
-        | . += {"minimum-stability": "dev"}' composer.json > composer-edit.json
-    # jq '  .repositories += [
-    #         {"type": "git", "url": "https://github.com/csidirop/kitodo-presentation.git"},
-    #         {"type": "git", "url": "https://github.com/csidirop/dfg-viewer.git"},
-    #         {"type": "git", "url": "https://github.com/csidirop/slub_digitalcollections.git"},
-    #         {"type": "git", "url": "https://github.com/kitodo/php-iiif-prezi-reader.git"}]
-    #     | .require += {"csidirop/dfgviewer": "dev-master"}
-    #     | . += {"minimum-stability": "dev"}' composer.json > composer-edit.json
-    mv composer.json composer.json.bak
-    mv composer-edit.json composer.json
-    ## Install extension classic way from packagist:
-    # composer require slub/dfgviewer # points to the highest version avail. on packagist
-    composer update
+    # Install the development version of Kitodo.Presentation:
+    printHeadline "Install Kitodo.Presentation development version:"
+    composer config platform.php 8.4
+    # Use Composer to preserve the local-packages repository registered above.
+    composer config repositories.presentation git https://github.com/csidirop/kitodo-presentation.git
+    composer config repositories.iiif-prezi-reader git https://github.com/kitodo/php-iiif-prezi-reader.git
+    composer config minimum-stability dev
+    composer require --with-all-dependencies "csidirop/presentation:dev-feat/viewer4.1"
     vendor/bin/typo3 extension:setup
 
     chown -R www-data:www-data .
@@ -71,7 +68,7 @@ if [ ! -f /initFinished ]; then
     vendor/bin/typo3 configuration:set SYS/fileCreateMask 0660
     vendor/bin/typo3 configuration:set SYS/folderCreateMask 2770
     vendor/bin/typo3 configuration:set SYS/systemLocale en_US.UTF-8
-    vendor/bin/typo3 configuration:set SYS/trustedHostsPattern "(https?:\/\/)?(www\.)?${HOST}"
+    vendor/bin/typo3 configuration:set SYS/trustedHostsPattern "^(www\.)?${HOST}(:${PORT})?$"
     ## Set right permissions for existing folders:
     # chmod 2770 public/typo3conf/ext/                                    # set permissions for ext folder: owner and group can read, write and execute + inherit permissions
     # find .       -name ext\* -prune -o -name \* -exec chmod 2770 {} \;  # set permissions for all other: owner and group can read, write and execute + inherit permissions
@@ -126,20 +123,17 @@ if [ ! -f /initFinished ]; then
     
     # AdditionalConfiguration (Fixes TYPO3-CORE-SA-2020-006: Same-Origin Request Forgery to Backend User Interface: https://typo3.org/security/advisory/typo3-core-sa-2020-006)
     # (Only if DMZ is set in .env)
-    if [ ${TYPO3_ADDITIONAL_CONFIGURATION} != 'false' ]; then
+    if [[ "${TYPO3_ADDITIONAL_CONFIGURATION}" != false ]]; then
         printHeadline "Write AdditionalConfiguration.php:"
-        ### Take AdditionalConfiguration from /data, substitute the variables except for $GLOBALS (which isnt one) and pipe it to the TYPO3 dir
-        envsubst '${HOST}' < /data/AdditionalConfiguration.php >> /var/www/typo3/public/typo3conf/AdditionalConfiguration.php
+        # Substitute HOST only, leaving PHP variables such as $GLOBALS intact.
+        additionalConfig=/var/www/typo3/public/typo3conf/AdditionalConfiguration.php
+        envsubst '${HOST}' < /data/AdditionalConfiguration.php > "${additionalConfig}.tmp"
+        chown www-data:www-data "${additionalConfig}.tmp"
+        chmod 0640 "${additionalConfig}.tmp"
+        mv -f "${additionalConfig}.tmp" "${additionalConfig}"
     fi
 
     vendor/bin/typo3 cache:warmup
-
-    # Cleanup:
-    printHeadline "Cleanup:"
-    apt-get purge -y jq gettext
-    apt-get autoremove -y
-    apt-get clean
-    rm -rf /var/lib/apt/lists/*
 
     # Run further scripts:
     printHeadline "Running further scripts:"
@@ -159,3 +153,12 @@ else # Non default PORT
     printSuccessLine "Backend: http://${HOST}:${PORT}/typo3/"
 fi
 [[ $solr == 1 ]] && printSuccessLine "Solr:    http://${HOST}:8983"
+
+# If phpmyadmin is running, print the link to it:
+# wait-for-it -t 1 phpmyadmin:80 >> /dev/null 2>&1
+if curl --fail --silent --show-error phpmyadmin >> /dev/null 2>&1; then
+    printSuccessLine "phpMyAdmin: http://${HOST}:8080"
+fi
+
+# If the script reaches this point, the setup has been completed without errors and apache can now be started:
+exec apache2-foreground
