@@ -46,14 +46,20 @@ services:
     restart: unless-stopped
   solr:
     container_name: kitodo-presentation-solr
-    image: solr:8
+    image: solr:9.10.1
+    user: "0:0"
     environment:
       # All vars: /etc/default/solr.in.sh
-      - SOLR_OPTS=-XX:-UseLargePages #Fixes JVM out of memory error
-    command: solr-precreate dlf /var/solr/data/configsets/dlf
+      - SOLR_OPTS=-XX:-UseLargePages -Dsolr.config.lib.enabled=true
+    command:
+      - bash
+      - -ec
+      - |
+        find /var/solr -path /var/solr/data/configsets/dlf -prune -o -exec chown 8983:8983 {} +
+        exec runuser -u solr -- solr-precreate dlf /var/solr/data/configsets/dlf
     volumes:
       - ./volumes/solr/solrconfig/dlf:/var/solr/data/configsets/dlf
-      - ./volumes/solr/plugin:/opt/solr/contrib/ocrsearch/lib/
+      - ./volumes/solr/plugin/solr-ocrhighlighting-0.9.5.jar:/opt/solr/modules/ocrsearch/lib/solr-ocrhighlighting-0.9.5.jar:ro
       # - ./volumes/solr/solrdata:/var/solr
     ports:
       - "0.0.0.0:8983:8983"
