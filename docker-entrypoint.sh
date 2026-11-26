@@ -44,14 +44,14 @@ if [ ! -f /initFinished ]; then
         --site-name presentation \
         --web-server-config=apache
 
-    # Install Kitodo.Presentation:
-    printHeadline "Install Presentation:"
+    # Test Kitodo.Presentation PR #2269 and its IIIF reader dependency:
+    printHeadline "Install Presentation PR #2269:"
     composer config platform.php 8.4
-    # Presentation 7 requires 0.3.2, but upstream has not published that tag. 
-    #TODO: remove the commit hash when upstream has published 0.3.2
+    composer config repositories.presentation git https://github.com/thomaslow/kitodo-presentation.git
+    composer config repositories.iiif-reader git https://github.com/thomaslow/php-iiif-prezi-reader.git
     composer require --with-all-dependencies \
-        "ubl/php-iiif-prezi-reader:dev-master#57d3471cd1210cf78388e1d2b3e4c0ba1ef2688f as 0.3.2" \
-        "kitodo/presentation:^7.0"
+        "ubl/php-iiif-prezi-reader:dev-support-php-8.5" \
+        "kitodo/presentation:dev-add-test-environment"
     vendor/bin/typo3 extension:setup
 
     chown -R www-data:www-data .
