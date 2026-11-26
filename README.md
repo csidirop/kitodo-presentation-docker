@@ -21,7 +21,7 @@ While the main branch always offers the latest presentation version, the others 
 #### Presentation:
 | **branch** 	| **dfg-viewer** 	| **presentation** 	| **solr** 	| **base image** 	| **last update** 	|
 |---	|---	|---	|---	|---	|---	|
-| [main](https://github.com/UB-Mannheim/kitodo-presentation-docker) 	| - 	| [newest](https://github.com/kitodo/kitodo-presentation/releases) 	| [8.11.x](https://github.com/apache/solr-docker/tree/main/8.11) 	| [typo3-v13](https://github.com/csidirop/typo3-docker/tree/typo3-v13.x) 	| [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/UB-Mannheim/kitodo-presentation-docker/main?label=%20)](https://github.com/UB-Mannheim/kitodo-presentation-docker/commits/main) 	|
+| [main](https://github.com/UB-Mannheim/kitodo-presentation-docker) 	| - 	| [newest](https://github.com/kitodo/kitodo-presentation/releases) 	| [9.10.1](https://hub.docker.com/_/solr) 	| [typo3-v13](https://github.com/csidirop/typo3-docker/tree/typo3-v13.x) 	| [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/UB-Mannheim/kitodo-presentation-docker/main?label=%20)](https://github.com/UB-Mannheim/kitodo-presentation-docker/commits/main) 	|
 | [presentation-v7.x](https://github.com/UB-Mannheim/kitodo-presentation-docker/tree/presentation-v7.x) 	| - 	| [7.0.0](https://github.com/kitodo/kitodo-presentation/releases/tag/v7.0.0) 	| [8.11.x](https://github.com/apache/solr-docker/tree/main/8.11) 	| [typo3-v13](https://github.com/csidirop/typo3-docker/tree/typo3-v13.x) 	| [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/UB-Mannheim/kitodo-presentation-docker/presentation-v7.x?label=%20)](https://github.com/UB-Mannheim/kitodo-presentation-docker/commits/presentation-v7.x) 	|
 | [presentation-v6.x](https://github.com/UB-Mannheim/kitodo-presentation-docker/tree/presentation-v6.x) 	| - 	| [6.0.0](https://github.com/kitodo/kitodo-presentation/releases/tag/v6.0.0) 	| [8.11.x](https://github.com/apache/solr-docker/tree/main/8.11) 	| [typo3-v12](https://github.com/csidirop/typo3-docker/tree/typo3-v12.x) 	| [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/UB-Mannheim/kitodo-presentation-docker/presentation-v6.x?label=%20)](https://github.com/UB-Mannheim/kitodo-presentation-docker/commits/presentation-v6.x) 	|
 | *presentation-v5.x* | - | - | - | - | - |
@@ -96,6 +96,11 @@ Xdebug is disabled by default. The debugging workflow uses VS Code attached to t
 ### solr
 Apache Solr is an open-source search platform with full-text search, hit highlighting, faceted search and real-time indexing.
 To create an additional solr container use the docker profile `with-solr` when starting the containers.
+
+The service uses Solr 9.10.1 with the Solr 9 configuration shipped by Kitodo.Presentation
+and [OCR Highlighting 0.9.5](https://github.com/dbmdz/solr-ocrhighlighting/releases/tag/0.9.5).
+The plugin is mounted under `modules/ocrsearch/lib`. The `solr.config.lib.enabled`
+option enables the configuration's plugin-loading directive on Solr 9.8 and newer.
 
 ### phpmyadmin
 [phpMyAdmin](https://www.phpmyadmin.net/) is a web-based tool for managing MySQL/MariaDB databases.
